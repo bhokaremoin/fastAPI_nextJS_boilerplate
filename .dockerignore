@@ -1,9 +1,0 @@
-env/
-
-__pycache__/
-
- .idea/
-
-*.env
-*.env.*
-env.*
