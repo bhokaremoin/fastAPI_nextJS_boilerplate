@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  backend:
+    volumes:
+      - "./:/usr/src/app"
+    build:
+      dockerfile: dev.Dockerfile
+      context: .
+    networks:
+      - app_network
+    ports:
+      - "8001:8001"
+
+networks:
+  app_network:
+    driver: bridge
