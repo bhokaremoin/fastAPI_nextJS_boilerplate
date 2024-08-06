@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  backend:
+    volumes:
+      - "./:/usr/src/app"
+    build:
+      dockerfile: dev.Dockerfile
+      context: .
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - app_network
+    ports:
+      - "8001:8001"
+    command: ["/usr/src/app/wait-for-it.sh", "postgres:5432","-t","60","--","/usr/src/app/entrypoint.sh"]
+
+  redis:
+    image: "redis/redis-stack-server@sha256:92dbfb0bc408385074c83eb3a868b5f273d425f079f2af808403d22dcd94b667"
+    networks:
+      - app_network
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  postgres:
+    image: "docker.io/library/postgres@sha256:bab8d7be6466e029f7fa1e69ff6aa0082704db330572638fd01f2791824774d8"
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - app_network
+    ports:
+      - "5432:5432"
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

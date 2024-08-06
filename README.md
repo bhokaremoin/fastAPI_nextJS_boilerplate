@@ -1,1 +1,1 @@
-# fastAPI_nextJS_boilerplate
+# Boilerplate Code for fastAPI_nextJS Application
