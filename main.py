@@ -73,4 +73,4 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
 
 @app.get("/api/health")
 def health_check():
-    return {"status": "ok"}
+    return {"status": "ok", "message": "hello world !!"}

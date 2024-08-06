@@ -1,0 +1,15 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package.json ./
+
+RUN npm install
+ARG NEXT_PUBLIC_APP_ENV='development'
+ENV NEXT_PUBLIC_APP_ENV=$NEXT_PUBLIC_APP_ENV
+ARG NEXT_PUBLIC_DOCKER=true
+ENV NEXT_PUBLIC_DOCKER=$NEXT_PUBLIC_DOCKER
+
+COPY . .
+
+CMD ["npm", "run", "dev"]
