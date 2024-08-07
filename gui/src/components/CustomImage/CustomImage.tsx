@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import {CustomImageProps} from '../../../types/imageComponentsTypes';
+import {CustomImageProps} from '@/types/CustomComponentTypes';
 
 export default function CustomImage({
                                         className,
