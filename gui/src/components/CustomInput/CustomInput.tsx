@@ -1,3 +1,4 @@
+'use client'
 import React, {useState} from 'react';
 import CustomImage from '@/components/CustomImage/CustomImage';
 import styles from './input.module.css';
