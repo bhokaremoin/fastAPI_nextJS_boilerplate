@@ -3,31 +3,55 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+    --foreground-rgb: #FFFFFF;
+    --background-color: #000000;
+    --secondary-color: #888888;
+    --text-color: #FFFFFF;
+    --error-color: #FF3E2D;
+    --layout-bg-color: #131315;
+    --landing-page-gradient-color: linear-gradient(
+            180deg,
+            #7B3DEB66 16.5%,
+            #FFFFFF66 100%
+    );
+    --primary-button-bg-color: #FFFFFF;
+    --primary-button-fg-color: #000000;
+    --secondary-button-bg-color: #FFFFFF14;
+    --secondary-button-fg-color: #FFFFFF;
+    --white-opacity-2: #FFFFFF05;
+    --white-opacity-4: #FFFFFF0A;
+    --white-opacity-6: #FFFFFF0F;
+    --white-opacity-8: #FFFFFF14;
+    --white-opacity-12: #FFFFFF1F;
+    --white-opacity-20: #FFFFFF33;
+    --white-opacity-60: #FFFFFF99;
+    --color-666: #666666;
+    --project-bg-color: #0000003D;
+    --selected-image-border-color: #FFFFFFCC;
+    --github-button-border-color: #D1D5DA;
+    --warning-container-background: #AA7C2314;
+    --warning-container-border: #AA7C23;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+    :root {
+        --foreground-rgb: 255, 255, 255;
+        --background-start-rgb: 0, 0, 0;
+        --background-end-rgb: 0, 0, 0;
+    }
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(
+            to bottom,
+            transparent,
+            rgb(var(--background-end-rgb))
+    ) rgb(var(--background-start-rgb));
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+    .text-balance {
+        text-wrap: balance;
+    }
 }

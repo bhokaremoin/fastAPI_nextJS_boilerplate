@@ -1,13 +1,14 @@
 import Image from 'next/image';
 import {CustomImageProps} from '@/types/CustomComponentTypes';
 
-export default function CustomImage({
-                                        className,
-                                        src,
-                                        alt,
-                                        priority = false,
-                                        onClick,
-                                    }: CustomImageProps) {
+export default function CustomImage(
+    {
+        className,
+        src,
+        alt,
+        priority = false,
+        onClick,
+    }: CustomImageProps) {
     return (
         <Image
             width={0}
