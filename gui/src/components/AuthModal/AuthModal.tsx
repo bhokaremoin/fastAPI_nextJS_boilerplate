@@ -1,7 +1,7 @@
 // components/AuthModal.tsx
 import React, {useState} from 'react';
 import styles from './auth_modal.module.css';
-import CustomInput from "@/components/CustomInput/CustomInput";
+import {Button, Input} from "@nextui-org/react";
 
 interface AuthModalProps {
     isOpen: boolean;
@@ -9,22 +9,44 @@ interface AuthModalProps {
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({isOpen, onClose}) => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-
+    const [emailExists, setEmailExists] = useState<boolean | null>(null)
+    const [email, setEmail] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
     if (!isOpen) return null;
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Handle authentication logic here
-        console.log('Login attempt with:', email, password);
+
+    const getButtonFields = () => {
+        switch (emailExists) {
+            case null:
+                return {text: 'Continue', onClick: () => console.log('check_user')};
+            case true:
+                return {text: 'Sign In', onClick: () => console.log('login')};
+            case false:
+                return {text: 'Create Account', onClick: () => console.log('sign_up')};
+        }
     };
 
     return (
         <div className={styles.modalOverlay}>
             <div className={styles.modalContent}>
-                <CustomInput format={'text'} value={email} setter={setEmail} type={'primary'}/>
+                <Input
+                    key="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+                <Input
+                    key="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                <Button onClick={getButtonFields().onClick}>{getButtonFields().text}</Button>
             </div>
+
+            <div></div>
         </div>
     );
 };
