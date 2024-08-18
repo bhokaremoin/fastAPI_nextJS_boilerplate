@@ -36,13 +36,14 @@ const AuthModal: React.FC<AuthModalProps> = ({isOpen, onClose}) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
-                <Input
-                    key="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+                {emailExists !== null &&
+                    <Input
+                        key="password"
+                        type="password"
+                        placeholder={emailExists ? "Enter your password" : "Set Password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />}
                 <Button onClick={getButtonFields().onClick}>{getButtonFields().text}</Button>
             </div>
 
