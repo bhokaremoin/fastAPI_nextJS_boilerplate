@@ -95,7 +95,7 @@ const Home: React.FC = () => {
     };
 
     return (
-        <main className="w-screen h-screen flex flex-col items-center">
+        <main className="w-screen h-[75vh] flex flex-col items-center justify-between">
             <div className="flex flex-col gap-4">
                 <div className="flex flex-row gap-2">
                     <Input
@@ -119,6 +119,13 @@ const Home: React.FC = () => {
                     ))}
                 </div>
             </div>
+            <div className={"flex flex-col gap-2"}>
+                <span>Dockerized BoilerPlate Template for FullStack Web Application</span>
+                <span>NextJs for Frontend Development</span>
+                <span>FastAPI for Backend Development</span>
+                <span>PostgreSQL for Relational Database</span>
+                <span>Redis for Caching</span>
+            </div>
             {showAlert && (
                 <CustomAlert
                     message="You have unsaved todos. Would you like to save them?"
@@ -126,13 +133,6 @@ const Home: React.FC = () => {
                     onCancel={() => setShowAlert(false)}
                 />
             )}
-            {/*<div className={"flex flex-col gap-2"}>*/}
-            {/*    <span>Dockerized BoilerPlate Template for FullStack Web Application</span>*/}
-            {/*    <span>NextJs for Frontend Development</span>*/}
-            {/*    <span>FastAPI for Backend Development</span>*/}
-            {/*    <span>PostgreSQL for Relational Database</span>*/}
-            {/*    <span>Redis for Caching</span>*/}
-            {/*</div>*/}
             <AuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}/>
         </main>
     );

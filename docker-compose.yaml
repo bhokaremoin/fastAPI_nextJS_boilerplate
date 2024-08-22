@@ -14,24 +14,24 @@ services:
       - "8001:8001"
     command: [ "/usr/src/app/wait-for-it.sh", "postgres:5432","-t","60","--","/usr/src/app/entrypoint.sh" ]
 
-  gui:
-    build:
-      dockerfile: dev.Dockerfile
-      context: ./gui
-      args:
-        NEXT_PUBLIC_API_BASE_URL: "/api"
-    networks:
-      - app_network
-    volumes:
-      - ./gui:/app
-      - /app/node_modules/
-      - /app/.next/
-    depends_on:
-      - backend
-    restart: always
-    ports:
-      - 3000:3000
-    command: [ "npm","run","dev" ]
+  #  gui:
+  #    build:
+  #      dockerfile: dev.Dockerfile
+  #      context: ./gui
+  #      args:
+  #        NEXT_PUBLIC_API_BASE_URL: "/api"
+  #    networks:
+  #      - app_network
+  #    volumes:
+  #      - ./gui:/app
+  #      - /app/node_modules/
+  #      - /app/.next/
+  #    depends_on:
+  #      - backend
+  #    restart: always
+  #    ports:
+  #      - 3000:3000
+  #    command: [ "npm","run","dev" ]
 
   #  proxy:
   #    image: nginx:stable-alpine@sha256:8f62e8ffc22a112ab3aeb56f56b9ea3e2561248dee1d8cb72c5d6462a7789b5e
