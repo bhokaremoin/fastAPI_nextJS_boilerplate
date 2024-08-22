@@ -37,7 +37,7 @@ const CustomAlert: React.FC<CustomAlertProps> = ({message, onConfirm, onCancel})
 const Home: React.FC = () => {
     const [newTodo, setNewTodo] = useState<string>('');
     const [todoList, setTodoList] = useState<TodoItem[]>([]);
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
     const [showAlert, setShowAlert] = useState<boolean>(false);
 
     const handleAddTodo = useCallback(() => {
