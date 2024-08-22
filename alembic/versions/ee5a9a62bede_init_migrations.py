@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import func
 
 # revision identifiers, used by Alembic.
@@ -26,6 +27,8 @@ def upgrade() -> None:
         sa.Column('email', sa.String(length=255), nullable=False),
         sa.Column('password', sa.String(length=255), nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=func.now(), nullable=False),
+        sa.Column('timezone', sa.String(length=255), nullable=True),
+        sa.Column('ip_addresses', postgresql.ARRAY(postgresql.JSONB(astext_type=sa.Text())), nullable=True),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=func.now(), onupdate=func.now(),
                   nullable=False),
         sa.PrimaryKeyConstraint('id'),

@@ -1,23 +1,19 @@
 import os
-from typing import Optional
 
+from asgi_correlation_id import CorrelationIdMiddleware
 from dotenv import load_dotenv
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException
-from fastapi_sqlalchemy import DBSessionMiddleware, db
-from fastapi.exception_handlers import http_exception_handler
+from fastapi_sqlalchemy import DBSessionMiddleware
 from pydantic import BaseModel
-from sqlalchemy import create_engine
 # from sqlalchemy.orm import sessionmaker
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
-from asgi_correlation_id import CorrelationIdMiddleware, correlation_id, CorrelationIdFilter
 
+from app.controllers.users import router as user_router
 from database import Database
-
-from app.lib.logger import logger
 
 app = FastAPI()
 
@@ -39,8 +35,7 @@ engine_args = {
 app.add_middleware(DBSessionMiddleware, db_url=DB_URL, engine_args=engine_args)
 app.add_middleware(CorrelationIdMiddleware)
 
-
-origins = ["*",]
+origins = ["*", ]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -51,6 +46,9 @@ app.add_middleware(
 
 database = Database(DB_URL)
 engine = database.get_engine()
+
+app.include_router(user_router, prefix="/api/auth")
+
 
 class Settings(BaseModel):
     # jwt_secret = get_config("JWT_SECRET_KEY")
