@@ -1,10 +1,10 @@
-// components/AuthModal.tsx
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import styles from './auth_modal.module.css';
 import {Button, Input} from "@nextui-org/react";
 import {checkUserEmailExists, login, signUp} from "@/services/api/authService";
 import {validateEmail} from "@/utils/utils";
 import {authPayload} from "@/types/auth";
+import {setCookie} from "@/utils/cookies";
 
 interface AuthModalProps {
     isOpen: boolean;
@@ -18,94 +18,79 @@ const AuthModal: React.FC<AuthModalProps> = ({isOpen, onClose}) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
-    if (!isOpen) return null;
 
-    const handleSetEmail = (e) => {
+    const handleSetEmail = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setEmail(e.target.value);
         setEmailExists(null);
         setEmailErrorMsg('');
         setPassword('');
-        // setShowPassword(false);
         setPasswordErrorMsg('');
-    }
+    }, []);
 
-    const handleSetPassword = (e) => {
+    const handleSetPassword = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(e.target.value);
         setPasswordErrorMsg('');
-    }
+    }, []);
 
-
-    async function checkEmailExists() {
+    const checkEmailExists = useCallback(async () => {
+        if (!validateEmail(email)) {
+            setEmailErrorMsg("Enter Valid Email");
+            return;
+        }
+        setLoading(true);
         try {
-            if (!validateEmail(email)) {
-                setEmailErrorMsg("Enter Valid Email")
-                return;
-            }
-            setLoading(true);
             const response = await checkUserEmailExists(email);
-            if (response) {
-                const data = response.data;
-                if (data.success) {
-                    const data = response.data;
-                    setEmailExists(data.user_exists);
-                }
+            if (response && response.data.success) {
+                setEmailExists(response.data.user_exists);
             }
         } catch (error) {
-            console.error(error)
+            console.error(error);
         } finally {
             setLoading(false);
         }
-    }
+    }, [email]);
 
-    async function loginUser() {
+    const loginUser = useCallback(async () => {
+        setLoading(true);
         try {
-            setLoading(true);
-            const payload: authPayload = {
-                email: email,
-                password: password,
-            };
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const payload: authPayload = {email, password, timezone};
             const response = await login(payload);
-            if (response) {
-                const data = response.data;
-                if (data.success) {
-                    console.log(data);
-                } else {
-                    setPasswordErrorMsg('Password entered is incorrect.');
-                }
+            if (response && response.data.success) {
+                setCookie("accessToken", response.data.accessToken);
+                onClose();
+            } else {
+                setPasswordErrorMsg('Password entered is incorrect.');
             }
         } catch (error) {
             console.error('Error: ', error);
         } finally {
-            setLoading(true);
+            setLoading(false);
         }
-    }
+    }, [email, password]);
 
-    async function createAccount() {
+    const createAccount = useCallback(async () => {
+        if (password.length < 8) {
+            setPasswordErrorMsg('Password must be at least 8 characters');
+            return;
+        }
+        setLoading(true);
         try {
-            if (password.length < 8) {
-                setPasswordErrorMsg('Password must be atleast 8 characters');
-                return;
-            }
-            setLoading(true);
-            const payload: authPayload = {
-                email: email,
-                password: password,
-            };
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const payload: authPayload = {email, password, timezone};
             const response = await signUp(payload);
-            if (response) {
-                const data = response.data;
-                if (data.success) {
-                    console.log(data);
-                }
+            if (response && response.data.success) {
+                setCookie("accessToken", response.data.accessToken);
+                onClose();
             }
         } catch (error) {
             console.error('Error: ', error);
         } finally {
-            setLoading(true);
+            setLoading(false);
         }
-    }
+    }, [email, password]);
 
-    const getButtonFields = () => {
+    const getButtonFields = useCallback(() => {
         switch (emailExists) {
             case null:
                 return {text: 'Continue', onClick: checkEmailExists};
@@ -114,7 +99,27 @@ const AuthModal: React.FC<AuthModalProps> = ({isOpen, onClose}) => {
             case false:
                 return {text: 'Create Account', onClick: createAccount};
         }
-    };
+    }, [emailExists, checkEmailExists, loginUser, createAccount]);
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Enter') {
+                if (emailExists === null) {
+                    checkEmailExists().then().catch();
+                } else if (emailExists) {
+                    loginUser().then().catch();
+                } else {
+                    createAccount().then().catch();
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [emailExists, checkEmailExists, loginUser, createAccount]);
+
+    if (!isOpen) return null;
 
     return (
         <div className={styles.modalOverlay}>
@@ -128,7 +133,7 @@ const AuthModal: React.FC<AuthModalProps> = ({isOpen, onClose}) => {
                     value={email}
                     onChange={handleSetEmail}
                 />
-                {emailExists !== null &&
+                {emailExists !== null && (
                     <Input
                         key="password"
                         type="password"
@@ -137,11 +142,12 @@ const AuthModal: React.FC<AuthModalProps> = ({isOpen, onClose}) => {
                         errorMessage={passwordErrorMsg}
                         value={password}
                         onChange={handleSetPassword}
-                    />}
-                <Button onClick={getButtonFields().onClick} isLoading={loading}>{getButtonFields().text}</Button>
+                    />
+                )}
+                <Button onClick={getButtonFields().onClick} isLoading={loading}>
+                    {getButtonFields().text}
+                </Button>
             </div>
-
-            <div></div>
         </div>
     );
 };

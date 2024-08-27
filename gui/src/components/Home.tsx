@@ -6,6 +6,7 @@ import {Button, Input} from "@nextui-org/react";
 import Image from "next/image";
 import AuthModal from "@/components/AuthModal/AuthModal";
 import imagePath from "@/app/imagePath";
+import {useGlobalContext} from "@/context/Global";
 
 interface TodoItem {
     id: number;
@@ -37,8 +38,8 @@ const CustomAlert: React.FC<CustomAlertProps> = ({message, onConfirm, onCancel})
 const Home: React.FC = () => {
     const [newTodo, setNewTodo] = useState<string>('');
     const [todoList, setTodoList] = useState<TodoItem[]>([]);
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
     const [showAlert, setShowAlert] = useState<boolean>(false);
+    const {authModalOpen, setAuthModalOpen} = useGlobalContext();
 
     const handleAddTodo = useCallback(() => {
         if (newTodo.trim() === '') return;
@@ -90,7 +91,7 @@ const Home: React.FC = () => {
     }, [todoList]);
 
     const handleSaveTodos = () => {
-        setIsModalOpen(true);
+        setAuthModalOpen(true);
         setShowAlert(false);
     };
 
@@ -133,7 +134,7 @@ const Home: React.FC = () => {
                     onCancel={() => setShowAlert(false)}
                 />
             )}
-            <AuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}/>
+            <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)}/>
         </main>
     );
 };
