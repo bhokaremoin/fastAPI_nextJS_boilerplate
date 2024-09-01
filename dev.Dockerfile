@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.9-slim@sha256:0b4b0801ae9ae61bb57bc738b1efbe4e16b927fd581774c8edfed90f0e0f01ad
+FROM python:3.9.19-slim
 
 # Set the working directory in the container
 WORKDIR /usr/src/app

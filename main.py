@@ -2,17 +2,18 @@ import os
 
 from asgi_correlation_id import CorrelationIdMiddleware
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException
 from fastapi_sqlalchemy import DBSessionMiddleware
 from pydantic import BaseModel
-# from sqlalchemy.orm import sessionmaker
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.controllers.auth import router as auth_router
+from authentication.api_access import APIAccess
+from authentication.auth import TokenService
 from database import Database
 
 app = FastAPI()
@@ -51,11 +52,12 @@ app.include_router(auth_router, prefix="/api/auth")
 
 
 class Settings(BaseModel):
-    # jwt_secret = get_config("JWT_SECRET_KEY")
     authjwt_secret_key: str = os.getenv("JWT_SECRET_KEY")
 
+    class Config:
+        orm_mode = True
 
-# callback to get your configuration
+
 @AuthJWT.load_config
 def get_config():
     return Settings()
@@ -72,3 +74,9 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
 @app.get("/api/health")
 def health_check():
     return {"status": "ok", "message": "hello world !!"}
+
+
+@app.get("/api/test")
+def test_api(authorize: AuthJWT = Depends()):
+    user = TokenService(authorize=authorize, api_access=[APIAccess.USER, APIAccess.DEV]).validate_access_token()
+    return {'success': True, 'user': user}

@@ -1,34 +1,28 @@
-import re
-from datetime import datetime
+from sqlalchemy.orm import Session
 
-import bcrypt
-from fastapi_sqlalchemy import db
-
-from app.models.types.request.auth_controller.authRequest import AuthRequest
 from app.models.users import User
 
 
 class UserService:
-    def __init__(self):
-        pass
+    @staticmethod
+    def get_user_by_id(session: Session, user_id: int):
+        return session.query(User).filter(User.id == user_id).first()
 
     @staticmethod
-    def is_valid_email(email: str) -> bool:
-        email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
-        if re.match(email_regex, email):
-            return True
-        return False
+    def get_user_by_email(session: Session, email: str):
+        return session.query(User).filter(User.email == email).first()
 
     @staticmethod
-    def get_ip(request):
-        timestamp = datetime.now().isoformat()
-        ip_address = request.headers.get('x-forwarded-for', None)
-        return [{"ip": ip_address, "timestamp": timestamp}]
-
-    @staticmethod
-    def create_user(ip_data, request_payload: AuthRequest):
-        hashed_password = bcrypt.hashpw(request_payload.password.encode(), bcrypt.gensalt()).decode()
-        return User.create_user(session=db.session, email=request_payload.email.lower(),
-                                password=hashed_password,
-                                ip_addresses=ip_data,
-                                timezone=request_payload.timezone)
+    def create_user(session: Session, email: str, password: bytes, ip_addresses=None, timezone=None):
+        new_user = User(
+            email=email,
+            password=password,
+            role='USER',
+            ip_addresses=ip_addresses,
+            timezone=timezone,
+        )
+        session.add(new_user)
+        session.commit()
+        session.flush()
+        session.refresh(new_user)
+        return new_user

@@ -6,12 +6,12 @@ from fastapi import HTTPException
 from fastapi_jwt_auth import AuthJWT
 from fastapi_sqlalchemy import db
 
-from app.models.users import User
+from app.services.users import UserService
 from authentication.api_access import APIAccess
 from authentication.permissions import PermissionService
 
 
-class AuthService:
+class TokenService:
 
     def __init__(self, authorize: AuthJWT, api_access: List[APIAccess]):
         self.authorize = authorize
@@ -29,9 +29,9 @@ class AuthService:
 
     def validate_access_token(self):
         email = self.authorize.get_jwt_subject()
-        user = User.get_user_by_email(session=db.session, email=email)
+        user = UserService.get_user_by_email(session=db.session, email=email)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         if not PermissionService().check_authorization(api_access=self.api_access, user=user):
             raise HTTPException(status_code=403, detail="Unauthorized")
-        return user
+        return

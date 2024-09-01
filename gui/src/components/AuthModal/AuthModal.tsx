@@ -79,7 +79,7 @@ const AuthModal: React.FC<AuthModalProps> = ({isOpen, onClose}) => {
             const payload: authPayload = {email, password, timezone};
             const response = await login(payload);
             if (response && response.data.success) {
-                setCookie("accessToken", response.data.accessToken);
+                setCookie("accessToken", response.data.access_token);
                 onClose();
             } else {
                 setPasswordErrorMsg('Password entered is incorrect.');
@@ -102,7 +102,7 @@ const AuthModal: React.FC<AuthModalProps> = ({isOpen, onClose}) => {
             const payload: authPayload = {email, password, timezone};
             const response = await signUp(payload);
             if (response && response.data.success) {
-                setCookie("accessToken", response.data.accessToken);
+                setCookie("accessToken", response.data.access_token);
                 onClose();
             }
         } catch (error) {

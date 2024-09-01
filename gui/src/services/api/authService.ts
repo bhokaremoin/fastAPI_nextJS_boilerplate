@@ -19,3 +19,7 @@ export const login = (payload: authPayload) => {
 export const signUp = (payload: authPayload) => {
     return api.post(`/auth/sign_up`, payload);
 };
+
+export const testAPI = () => {
+    return api.get('/test');
+}
