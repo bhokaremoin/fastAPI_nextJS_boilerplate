@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import styles from './auth_modal.module.css';
 import {Button, Input} from "@nextui-org/react";
 import {checkUserEmailExists, login, signUp} from "@/services/api/authService";
@@ -18,6 +18,28 @@ const AuthModal: React.FC<AuthModalProps> = ({isOpen, onClose}) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
+
+    const modalRef = useRef<HTMLDivElement>(null);
+
+    const handleClickOutside = (event: MouseEvent) => {
+        if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+            onClose();
+        }
+    };
+
+    useEffect(() => {
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
 
     const handleSetEmail = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setEmail(e.target.value);
@@ -123,7 +145,7 @@ const AuthModal: React.FC<AuthModalProps> = ({isOpen, onClose}) => {
 
     return (
         <div className={styles.modalOverlay}>
-            <div className={styles.modalContent}>
+            <div className={styles.modalContent} ref={modalRef}>
                 <Input
                     key="email"
                     type="email"
@@ -137,6 +159,7 @@ const AuthModal: React.FC<AuthModalProps> = ({isOpen, onClose}) => {
                     <Input
                         key="password"
                         type="password"
+                        autoFocus={true}
                         placeholder={emailExists ? "Enter your password" : "Set Password"}
                         isInvalid={passwordErrorMsg !== ''}
                         errorMessage={passwordErrorMsg}

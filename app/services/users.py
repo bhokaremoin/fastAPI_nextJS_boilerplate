@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 
+import bcrypt
 from fastapi_sqlalchemy import db
 
 from app.models.types.request.auth_controller.authRequest import AuthRequest
@@ -26,7 +27,8 @@ class UserService:
 
     @staticmethod
     def create_user(ip_data, request_payload: AuthRequest):
+        hashed_password = bcrypt.hashpw(request_payload.password.encode(), bcrypt.gensalt()).decode()
         return User.create_user(session=db.session, email=request_payload.email.lower(),
-                                password=request_payload.password,
+                                password=hashed_password,
                                 ip_addresses=ip_data,
                                 timezone=request_payload.timezone)

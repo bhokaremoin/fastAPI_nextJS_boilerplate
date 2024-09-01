@@ -1,3 +1,4 @@
+import bcrypt
 from fastapi import APIRouter, Query, HTTPException, Depends, Request, Response
 from fastapi_jwt_auth import AuthJWT
 from fastapi_sqlalchemy import db
@@ -41,8 +42,8 @@ async def sign_in(req: Request, response: Response, request_payload: AuthRequest
     user = User.get_user_by_email(session=db.session, email=email)
     if not user:
         raise HTTPException(status_code=400, detail='User Email does not exist')
-    if user.password != request_payload.password:
-        return {"success": False, "message": "Password mismatch"}
+    if not bcrypt.checkpw(request_payload.password.encode(), user.password):
+        return {"success": False, "message": "Password is incorrect."}
     access = [APIAccess.USER]
     access_token = AuthService(authorize=Authorize, api_access=access).create_access_token(user.email)
     # response.set_cookie(key="access_token", value=access_token, max_age=3600, httponly=False)
