@@ -1,99 +1,89 @@
 'use client'
 
 import React, {KeyboardEvent, useCallback, useEffect, useState} from "react";
-import {createPortal} from "react-dom";
 import {Button, Input} from "@nextui-org/react";
 import Image from "next/image";
 import AuthModal from "@/components/AuthModal/AuthModal";
 import imagePath from "@/app/imagePath";
 import {useGlobalContext} from "@/context/Global";
-
-interface TodoItem {
-    id: number;
-    name: string;
-    isDone: boolean;
-}
-
-interface CustomAlertProps {
-    message: string;
-    onConfirm: () => void;
-    onCancel: () => void;
-}
-
-const CustomAlert: React.FC<CustomAlertProps> = ({message, onConfirm, onCancel}) => {
-    return createPortal(
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-xl">
-                <p className="mb-4">{message}</p>
-                <div className="flex justify-end space-x-2">
-                    <Button color="primary" onClick={onConfirm}>Save Todos</Button>
-                    <Button color="danger" onClick={onCancel}>Cancel</Button>
-                </div>
-            </div>
-        </div>,
-        document.body
-    );
-};
+import {TodoItem} from "@/types/todo";
+import {createTodo, deleteTodo, getTodos, updateTodo} from "@/services/api/todoService";
+import {getCookie} from "@/utils/cookies";
 
 const Home: React.FC = () => {
     const [newTodo, setNewTodo] = useState<string>('');
     const [todoList, setTodoList] = useState<TodoItem[]>([]);
-    const [showAlert, setShowAlert] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const {authModalOpen, setAuthModalOpen} = useGlobalContext();
+    const [loggedIn, setLoggedIn] = useState(false);
 
-    const handleAddTodo = useCallback(() => {
-        if (newTodo.trim() === '') return;
+    const fetchTodos = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            const response = await getTodos();
+            setTodoList(response.data);
+        } catch (error) {
+            console.error("Error fetching todos:", error);
+        } finally {
+            setIsLoading(false);
+        }
 
-        setTodoList(prevList => [
-            ...prevList,
-            {
-                id: Date.now(),
-                name: newTodo.trim(),
-                isDone: false,
-            }
-        ]);
-        setNewTodo('');
-    }, [newTodo]);
-
-    const markAsDone = useCallback((id: number) => {
-        setTodoList(prevList =>
-            prevList.map(todo =>
-                todo.id === id ? {...todo, isDone: true} : todo
-            )
-        );
     }, []);
 
-    const deleteTodo = useCallback((id: number) => {
-        setTodoList(prevList => prevList.filter(todo => todo.id !== id));
+
+    useEffect(() => {
+        const accessToken = getCookie('accessToken');
+        console.log("out")
+        if (accessToken) {
+            fetchTodos().then();
+            setLoggedIn(true);
+            console.log("hit");
+        }
+    }, [fetchTodos, authModalOpen]);
+
+    const handleAddTodo = useCallback(async () => {
+        if (newTodo.trim() === '') return;
+        if (!loggedIn) {
+            setAuthModalOpen(true);
+            return;
+        }
+        try {
+            const response = await createTodo({title: newTodo.trim()});
+            setTodoList(prevList => [...prevList, response.data]);
+            setNewTodo('');
+        } catch (error) {
+            console.error("Error adding todo:", error);
+        }
+    }, [newTodo, loggedIn]);
+
+    const markAsDone = useCallback(async (id: string) => {
+        try {
+            const response = await updateTodo(id, {is_done: true});
+            setTodoList(prevList =>
+                prevList.map(todo =>
+                    todo._id === id ? response.data : todo
+                )
+            );
+        } catch (error) {
+            console.error("Error updating todo:", error);
+        }
+    }, []);
+
+    const deleteTodoItem = useCallback(async (id: string) => {
+        try {
+            await deleteTodo(id);
+            setTodoList(prevList => prevList.filter(todo => todo._id !== id));
+        } catch (error) {
+            console.error("Error deleting todo:", error);
+        }
     }, []);
 
     const handleKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter') {
             event.preventDefault();
-            handleAddTodo();
+            handleAddTodo().then();
         }
     }, [handleAddTodo]);
-
-    useEffect(() => {
-        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (todoList.length > 0) {
-                e.preventDefault();
-                setShowAlert(true);
-                e.returnValue = '';
-            }
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
-    }, [todoList]);
-
-    const handleSaveTodos = () => {
-        setAuthModalOpen(true);
-        setShowAlert(false);
-    };
 
     return (
         <main className="w-screen h-[75vh] flex flex-col items-center justify-between">
@@ -110,14 +100,18 @@ const Home: React.FC = () => {
                     <Button onClick={handleAddTodo}>Add</Button>
                 </div>
                 <div>
-                    {todoList.map((todo) => (
-                        <TodoItem
-                            key={todo.id}
-                            todo={todo}
-                            onMarkDone={markAsDone}
-                            onDelete={deleteTodo}
-                        />
-                    ))}
+                    {isLoading ? (
+                        <p>Loading todos...</p>
+                    ) : (
+                        todoList.map((todo) => (
+                            <TodoItemComponent
+                                key={todo._id}
+                                todo={todo}
+                                onMarkDone={markAsDone}
+                                onDelete={deleteTodoItem}
+                            />
+                        ))
+                    )}
                 </div>
             </div>
             <div className={"flex flex-col gap-2"}>
@@ -127,29 +121,23 @@ const Home: React.FC = () => {
                 <span>PostgreSQL for Relational Database</span>
                 <span>Redis for Caching</span>
             </div>
-            {showAlert && (
-                <CustomAlert
-                    message="You have unsaved todos. Would you like to save them?"
-                    onConfirm={handleSaveTodos}
-                    onCancel={() => setShowAlert(false)}
-                />
-            )}
             <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)}/>
         </main>
     );
 };
 
 interface TodoItemProps {
+    key: string;
     todo: TodoItem;
-    onMarkDone: (id: number) => void;
-    onDelete: (id: number) => void;
+    onMarkDone: (id: string) => void;
+    onDelete: (id: string) => void;
 }
 
-const TodoItem: React.FC<TodoItemProps> = React.memo(({todo, onMarkDone, onDelete}) => {
+const TodoItemComponent: React.FC<TodoItemProps> = React.memo(({todo, onMarkDone, onDelete}) => {
     const [isHovered, setIsHovered] = useState(false);
-
     return (
         <div
+            key={todo._id}
             className="flex flex-row gap-2 justify-between items-center p-2 hover:bg-gray-100 rounded"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -158,12 +146,12 @@ const TodoItem: React.FC<TodoItemProps> = React.memo(({todo, onMarkDone, onDelet
                 <Image
                     width={20}
                     height={20}
-                    src={todo.isDone ? imagePath.checkedCheckbox : imagePath.checkbox}
+                    src={todo.is_done ? imagePath.checkedCheckbox : imagePath.checkbox}
                     alt="checkbox"
-                    onClick={() => !todo.isDone && onMarkDone(todo.id)}
+                    onClick={() => !todo.is_done && onMarkDone(todo._id)}
                     className="cursor-pointer"
                 />
-                <span className={todo.isDone ? "line-through text-gray-500" : ""}>{todo.name}</span>
+                <span className={todo.is_done ? "line-through text-gray-500" : ""}>{todo.title}</span>
             </div>
             {isHovered && (
                 <Image
@@ -171,7 +159,7 @@ const TodoItem: React.FC<TodoItemProps> = React.memo(({todo, onMarkDone, onDelet
                     height={20}
                     src={imagePath.delete}
                     alt="delete"
-                    onClick={() => onDelete(todo.id)}
+                    onClick={() => onDelete(todo._id)}
                     className="cursor-pointer"
                 />
             )}
@@ -179,6 +167,6 @@ const TodoItem: React.FC<TodoItemProps> = React.memo(({todo, onMarkDone, onDelet
     );
 });
 
-TodoItem.displayName = 'TodoItem';
+TodoItemComponent.displayName = 'TodoItem';
 
 export default Home;
