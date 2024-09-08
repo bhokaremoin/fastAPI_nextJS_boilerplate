@@ -22,3 +22,5 @@ SQLAlchemy==2.0.32
 starlette==0.38.4
 typing_extensions==4.12.2
 uvicorn==0.30.6
+motor==3.5.1
+pymongo==4.8.0

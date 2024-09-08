@@ -6,15 +6,17 @@ from fastapi import FastAPI, Depends
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException
 from fastapi_sqlalchemy import DBSessionMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.controllers.auth import router as auth_router
+from app.controllers.todo import router as todo_router
+from app.database.postgreSQL import PostgreSQL
 from authentication.api_access import APIAccess
 from authentication.auth import TokenService
-from database import Database
 
 app = FastAPI()
 
@@ -24,6 +26,10 @@ DB_PASS = os.getenv("DB_PASS")
 DB_HOST = os.getenv("DB_HOST")
 DB_NAME = os.getenv("DB_NAME")
 DB_URL = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}"
+
+MONGO_HOST = os.getenv("MONGO_HOST", "mongodb")
+MONGO_PORT = os.getenv("MONGO_PORT", "27017")
+MONGO_URL = f"mongodb://{MONGO_HOST}:{MONGO_PORT}"
 
 engine_args = {
     "pool_size": 20,
@@ -45,10 +51,24 @@ app.add_middleware(
     expose_headers=['X-Request-ID']
 )
 
-database = Database(DB_URL)
+database = PostgreSQL(DB_URL)
 engine = database.get_engine()
 
+
+@app.on_event("startup")
+async def startup_db_client():
+    app.mongodb_client = AsyncIOMotorClient(MONGO_URL)
+    app.mongodb = app.mongodb_client.todos_db
+
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    app.mongodb_client.close()
+
+
 app.include_router(auth_router, prefix="/api/auth")
+
+app.include_router(todo_router, prefix="/api/todos")
 
 
 class Settings(BaseModel):

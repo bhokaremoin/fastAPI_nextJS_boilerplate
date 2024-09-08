@@ -34,4 +34,4 @@ class TokenService:
             raise HTTPException(status_code=404, detail="User not found")
         if not PermissionService().check_authorization(api_access=self.api_access, user=user):
             raise HTTPException(status_code=403, detail="Unauthorized")
-        return
+        return user
