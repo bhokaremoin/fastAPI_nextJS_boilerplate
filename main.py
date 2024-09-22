@@ -13,7 +13,6 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.controllers.auth import router as auth_router
-from app.controllers.todo import router as todo_router
 from app.database.postgreSQL import PostgreSQL
 from authentication.api_access import APIAccess
 from authentication.auth import TokenService
@@ -67,8 +66,6 @@ async def shutdown_db_client():
 
 
 app.include_router(auth_router, prefix="/api/auth")
-
-app.include_router(todo_router, prefix="/api/todos")
 
 
 class Settings(BaseModel):

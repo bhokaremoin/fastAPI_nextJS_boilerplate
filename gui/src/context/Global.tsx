@@ -1,30 +1,20 @@
 'use client';
-import React, {createContext, ReactNode, useState} from 'react';
+import React, {createContext, ReactNode} from 'react';
 
 interface GlobalContextProps {
-    authModalOpen: boolean;
-    setAuthModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+
 }
 
-const defaultState: GlobalContextProps = {
-    authModalOpen: false,
-    setAuthModalOpen: () => {
-    },
-}
+const defaultState: GlobalContextProps = {}
 
 const GlobalContext = createContext<GlobalContextProps | undefined>(defaultState);
 
 export const GlobalProvider: React.FC<{ children: ReactNode }> = ({
                                                                       children,
                                                                   }) => {
-    const [authModalOpen, setAuthModalOpen] = useState<boolean>(false)
-
     return (
         <GlobalContext.Provider
-            value={{
-                authModalOpen,
-                setAuthModalOpen,
-            }}
+            value={{}}
         >
             {children}
         </GlobalContext.Provider>
